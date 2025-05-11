@@ -1,0 +1,176 @@
+CREATE DATABASE "Real Estate System"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LC_COLLATE = 'en-US'
+    LC_CTYPE = 'en-US'
+    LOCALE_PROVIDER = 'libc'
+    TABLESPACE = pg_default
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+create table "user" 
+(UserID	SMALLSERIAL,
+email_address varchar (30),
+first_name 	varchar(30),
+mid_name 	varchar(30),
+last_name	varchar(30),
+primary key (UserID) );
+
+
+create table Address (
+UserID	smallint,
+"number"char(5),
+street	varchar(25),
+apt	varchar(5),
+city	varchar(25),
+"state"	varchar(20),
+zip	char(9),
+country	varchar(30),
+primary key (UserID),
+foreign key (UserID) references "user");
+
+create table CC (
+CardID	char(8),
+CC_num	char(16),
+UserID	smallint,
+bill_num char(5),
+bill_apt	varchar(5),
+bill_street varchar(15),
+bill_city	varchar(25),
+bill_state	varchar(20),
+bill_zip	char(9),
+bill_country	varchar(30),
+Expiration_date char(5),
+Cardholder_Name varchar(50),
+primary key (CardID),
+foreign key (UserID) references "user");
+
+create table User_agent( 
+UserID smallint,
+job_title varchar(40),
+agency varchar(50),
+phone_num char(11),
+primary key (UserID),
+foreign key (UserID) references "user"(UserID));
+
+create table User_renter (
+UserID smallint,
+moveindate char(10),
+"location" varchar(30),
+budget numeric(12,3),
+primary key (UserID),
+foreign key (UserID) references "user"(UserID));
+
+create table property (
+propertyID char(8),
+"type" varchar(25),
+city varchar(25),
+"state" varchar(20),
+description varchar(100),
+price numeric(12,3),
+availability_status char(20),
+agency varchar(50),
+agent_UserID smallint,
+primary key (propertyID),
+foreign key (agent_UserID) references User_agent(UserID));
+
+create table property_apt (
+propertyID char(8),
+aptroom_num char(10),
+aptsq_ft numeric(6,2),
+apt_type varchar(25),
+primary key (propertyID),
+foreign key (propertyID) references property);
+
+create table property_house (
+propertyID char(8),
+room_num numeric(3,0),
+hsq_ft numeric(6,2),
+building_type varchar(25),
+primary key (propertyID),
+foreign key (propertyID) references property(propertyID));
+
+create table property_commercial (
+propertyID char(8),
+CB_sq_ft numeric(6,2),
+CB_type varchar(25),
+primary key (propertyID),
+foreign key (propertyID) references property(propertyID));
+
+create table Prop_Adress (
+propertyID char(8),
+"number" char(5),
+street varchar(25),
+apt	varchar(5),
+city varchar(25),
+"state"	varchar(20),
+zip	char(9),
+country	varchar(30),
+primary key (propertyID),
+foreign key (propertyID) references property(propertyID));
+
+create table Booking(
+bookingID SMALLSERIAL,
+UserID smallint,
+propertyID char(10),
+CardID char(8),
+Book_date char(10),
+MoveIn_date char(10),
+Price numeric(12,3),
+primary key (bookingID),
+foreign key(UserID) references "user"(UserID),
+foreign key(propertyID) references property(propertyID),
+foreign key (CardID) references CC(CardID));
+
+CREATE PROCEDURE delete_CC2(
+CC_num_input VARCHAR,
+UserID_input SMALLINT
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+	DELETE FROM CC WHERE CC_num = CC_num_input AND UserID = UserID_input;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE add_CC2(
+CardID TEXT, CC_num TEXT,UserID SMALLINT, bill_num TEXT,bill_apt TEXT, bill_street TEXT,bill_city TEXT, bill_state TEXT, bill_zip TEXT, bill_country TEXT, expiration_date TEXT, cardholder_name TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+	INSERT INTO CC (CardID, CC_num, UserID, bill_num,bill_apt, bill_street ,bill_city , bill_state , bill_zip , bill_country , expiration_date , cardholder_name)
+	VALUES (CardID, CC_num, UserID, bill_num,bill_apt, bill_street ,bill_city , bill_state , bill_zip , bill_country , expiration_date , cardholder_name);
+END;
+$$;
+
+
+Small Initial Data:
+
+
+insert into property
+values('P1','commercial','Chicago','Illinois','Very Nice place to live!',12000,'Available','Flower Estates',3);
+
+insert into Prop_Adress
+values('P1','5656','Canary',null,'Chicago','Illinois','60613','US');
+
+insert into property_commercial
+values('P1',2000,'office space');
+
+insert into property
+values('P2','APT','NaperVille','Illinois','Has a pond near by. Very modern home.',400000,'Available','Flower Estates',3);
+
+insert into property_apt
+values('P2','10',2000,'3-bedroom');
+
+insert into Prop_Adress
+values('P2','7790','Praire','4B','Naperville','Illinois','60756','US');
+
+insert into property
+values('P3','HOME','Chicago','Illinois','Near the city. Has an old vibe.',1000000,'Available','Flower Estates',3);
+
+insert into Prop_Adress
+values('P3','4545','Palos','124','Chicago','Illinois','60607','US');
+
+insert into property_house
+values('P3',7,2000,'brick');
